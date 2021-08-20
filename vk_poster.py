@@ -1,7 +1,9 @@
 import vk_api as vk
 from vk_api.upload import VkUpload
-import os
 from os.path import join
+from os import listdir
+from utils import date2unix
+from time import sleep
 
 
 def upload_photos(files):
@@ -22,27 +24,26 @@ def upload_photos(files):
     attachment = ",".join(attachment)
     return attachment
 
-def send_post(message, attachment):
-    with vk.VkRequestsPool(vk_session) as pool:
-        wall = pool.method('wall.post', {"message": message,
-                                         "attachment": attachment,
-                                         "friends_only": 1,
-                                         "mute_notifications": 1,
-                                         "publish_date": 1630454399})
-    return wall
+def send_post(message, attachment, post_time=None):
+    method_dict = {"message": message,
+                   "attachment": attachment,
+                   "friends_only": 1,
+                   "mute_notifications": 1}
+    if post_time is not None:
+        method_dict.update({"publish_date": post_time})
+    return vk_session.method('wall.post', method_dict)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 if __name__ == "__main__":
 
     data_dir = "out"
-    #my_app_id = "7930899"
+    start_date = "20/08/2021 19:15"
+    start_post_num = 0
     user_login = "+79251751046"
     user_password = "contact120461"
 
-    posts_list = sorted(os.listdir(data_dir))
-
-
+    posts_list = sorted(listdir(data_dir))
 
     vk_session = vk.VkApi(user_login, user_password)
     vk_session.auth()
@@ -50,17 +51,16 @@ if __name__ == "__main__":
     vk_api = vk_session.get_api()
     upload = VkUpload(vk_api)
 
-    npost = 180
+    for n, post in enumerate(posts_list[start_post_num:]):
+        with open(join(data_dir, post, "story.txt")) as f:
+            post_story = f.read()
+            post_story += " #соцмиграция"
 
-    with open(join(data_dir, posts_list[npost], "story.txt")) as f:
-        post_story = f.read()
+        impath = join(data_dir, post)
+        images = [join(impath, p) for p in listdir(impath) if "txt" not in p]
+        if start_date is not None:
+            post_time = date2unix(start_date) + int(60*n)
+        resp = send_post(post_story, upload_photos(images), post_time)
+        print("post {:04.0f} {} uploaded: {}".format(n+start_post_num, post, resp))
 
-    impath = join(data_dir, posts_list[npost])
-    images = [join(impath, p) for p in os.listdir(impath) if "txt" not in p]
-
-    resp = send_post(post_story, upload_photos(images))
-    print(resp)
-
-    #with vk.VkRequestsPool(vk_session) as pool:
-    #    wall = pool.method('wall.post', {"message": "puk"})
-    #print(wall)
+        sleep(5)
