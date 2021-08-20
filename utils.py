@@ -1,6 +1,13 @@
 import os
 from shutil import rmtree
+from datetime import datetime
+from time import mktime
 
+
+def date2unix(date):
+    date, time = date.split()
+    hour, minutes = [int(s) for s in time.split(":")]
+    return int(mktime(datetime.strptime(date, "%d/%m/%Y").timetuple())) + int(minutes*60) + int(hour*60*60)
 
 def mkdir(path, clear_dirs):
     if os.path.exists(path):
