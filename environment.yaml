@@ -1,0 +1,9 @@
+name: fb-parser
+dependencies:
+- python=3.8
+- pip:
+  - selenium
+  - bs4
+  - pyyaml==5.4.1
+  - html5lib
+  - vk-api
