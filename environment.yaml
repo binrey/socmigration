@@ -1,4 +1,4 @@
-name: fb-parser
+name: socmigration
 dependencies:
 - python=3.8
 - pip:
